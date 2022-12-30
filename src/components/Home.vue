@@ -1,5 +1,7 @@
 <template>
   <div class="Home">
+    <!-- 搜索框 -->
+    <Search></Search>
     <!-- 轮播图 -->
     <div class="swiper-container">
           <div class="swiper-wrapper">
@@ -44,12 +46,17 @@
 </template>
 
 <script>
+import Search from './Search.vue'
 import 'swiper/dist/js/swiper'
 import 'swiper/dist/css/swiper.css'
 import Swiper from 'swiper'
 import axios from 'axios'
+
 export default {
   name: 'Home',
+  components: {
+    Search
+  },
   data () {
     return {
       banners: [{

@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <!-- 路由匹配到的组件将渲染在这里 -->
     <router-view />
     <!-- 将子组件编写进当前组件模板 -->
     <Footer :routerUrl = 'routerUrl'></Footer>
