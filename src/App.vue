@@ -3,7 +3,7 @@
     <!-- 路由匹配到的组件将渲染在这里 -->
     <router-view />
     <!-- 将子组件编写进当前组件模板 -->
-    <Footer :routerUrl = 'routerUrl'></Footer>
+    <Footer :routerUrl = 'routerUrl' class="footer"></Footer>
   </div>
 </template>
 
@@ -40,12 +40,15 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  footer {
+    z-index: 3;
+  }
 }
 </style>
