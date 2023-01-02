@@ -3,8 +3,8 @@ import Router from 'vue-router'
 import Home from '@/components/Home'
 import Classify from '@/components/Classify'
 import Vip from '@/components/Vip'
-import Shop from '@/components/Shop'
 import My from '@/components/My'
+import Order from '@/components/Order'
 
 Vue.use(Router)
 
@@ -23,13 +23,13 @@ export default new Router({
       name: 'Vip',
       component: Vip
     }, {
-      path: '/Shop',
-      name: 'Shop',
-      component: Shop
-    }, {
       path: '/My',
       name: 'My',
       component: My
+    },{
+      path: '/Order',
+      name: 'Order',
+      component: Order
     }
   ]
 })

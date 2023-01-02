@@ -45,10 +45,12 @@
     <div class="bottom">
       <div class="payBtn">
         <img src="../assets/天猫购物车 .png" alt="" @click="showCar1" />
-        <div>
-          <span>先用后付,0元下单</span>
-          <span>确认收货后付款￥{{ totalPrice }}</span>
-        </div>
+        <router-link to="/Order">
+          <div>
+            <span>先用后付,0元下单</span>
+            <span>确认收货后付款￥{{ totalPrice }}</span>
+          </div>
+        </router-link>
       </div>
       <div class="carInfo" ref="car">
         <div v-if="!haveGoods" class="noGoods">先去逛逛再来吧!</div>
@@ -102,7 +104,7 @@ export default {
       haveGoods: true,
       shopList: [], // 购物车商品
       totalPrice: 0,  // 总价
-      allChecked: false
+      allChecked: true
     };
   },
   watch: {
@@ -113,7 +115,7 @@ export default {
         let price = 0
         let allBuy = 0
         newVal.forEach(item => {
-          if(item.isBuy) {
+          if(item.isBuy != false) {
             price += item.buy*item.price
             allBuy++
           }
@@ -149,6 +151,7 @@ export default {
           }
         }
       });
+      this.shopList = carList
       // 更新存储
       localStorage.setItem("carList", JSON.stringify(carList));
     },
@@ -204,12 +207,13 @@ export default {
       purchased.buy = good.buy;
       purchased.price = good.price;
       purchased.url = good.url
-      purchased.isBuy = false
+      purchased.isBuy = this.allChecked
       // 加入商品
       carList.push(purchased);
-
+      this.shopList = carList
       // 添加到本地存储
       localStorage.setItem("carList", JSON.stringify(carList));
+      console.log(this.shopList);
     },
 
     // 弹出和收回购物车,以及加载购物车中的信息
@@ -337,6 +341,9 @@ html {
 * {
   margin: 0;
   padding: 0;
+}
+a {
+  text-decoration: none;
 }
 /* body {
   background-color: blue;

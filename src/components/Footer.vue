@@ -21,10 +21,10 @@
             <p>会员购</p>
           </router-link>
         </li>
-        <li :class='routerUrl === "Shop" ? "action" : ""'>
-          <router-link to="/Shop">
+        <li :class='routerUrl === "Order" ? "action" : ""'>
+          <router-link to="/Order">
             <i class="iconfont icon-gouwuche"></i>
-            <p>购物车</p>
+            <p>下单</p>
           </router-link>
         </li>
         <li :class='routerUrl === "My" ? "action" : ""'>
