@@ -28,9 +28,9 @@
         </div>
         <!-- 商品购买数量 -->
         <div class="number" v-if="good.buy">
-          <span @click="jia(good)">＋</span>
+          <span @click="jia(good);allChecked = false">＋</span>
           <span class="mid">{{ good.buy }}</span>
-          <span @click="jian(good)">-</span>
+          <span @click="jian(good);allChecked = false">-</span>
         </div>
         <div class="car" v-else>
           <span @click="toCar(good)">加入购物车</span>
@@ -54,7 +54,7 @@
         <div v-if="!haveGoods" class="noGoods">先去逛逛再来吧!</div>
         <div class="top" v-if="haveGoods">
           <div class="left">
-            <input type="checkbox" ref="all" @click="allBuy($event)" v-model="allChecked">
+            <input type="checkbox" ref="all" @click="allBuy($event)" v-model="allChecked" checked="false">
             <span>全选</span>
           </div>
           <div class="mid">
@@ -102,7 +102,7 @@ export default {
       haveGoods: true,
       shopList: [], // 购物车商品
       totalPrice: 0,  // 总价
-      allChecked: true
+      allChecked: false
     };
   },
   watch: {
@@ -119,11 +119,6 @@ export default {
           }
         })
         this.totalPrice = price
-        if(allbuy === this.shopList.lenth) {
-          this.allChecked = true
-        }else {
-          this.allChecked = false
-        }
       },
     },
   },
@@ -147,7 +142,8 @@ export default {
       carList.forEach((item, index) => {
         if (good.id === item.id) {
           if (good.buy) {
-            item.buy = good.buy;
+            carList[index].buy = good.buy;
+            carList[index].isBuy = good.isBuy
           } else {
             carList.splice(index, 1);
           }
@@ -167,10 +163,16 @@ export default {
       good.buy--;
       // 更新本地存储
       this.update(good);
+
+      // 解决打开购物车页面，操作商品从1-》0时，goodsList数据更新不及时的问题
+      this.goodsList.forEach((item, index) => {
+        if(item.id === good.id) {
+          this.goodsList[index].buy = good.buy
+        }
+      })
     },
     // 用于一开始加载页面读取本地存储中的购物信息
     viewCar() {
-      // console.log(this.goodsList);
       this.goodsList.forEach((good, index) => {
         let carList = localStorage.getItem("carList");
         if (carList) {
@@ -180,7 +182,6 @@ export default {
           // 本地有对应商品的购物信息，则加载本地的购物数
           if (good.id === item.id) {
             this.goodsList[index].buy = item.buy;
-            // console.log(item);
           }
         });
       });
@@ -203,7 +204,7 @@ export default {
       purchased.buy = good.buy;
       purchased.price = good.price;
       purchased.url = good.url
-      purchased.isBuy = true
+      purchased.isBuy = false
       // 加入商品
       carList.push(purchased);
 
@@ -241,9 +242,8 @@ export default {
     // 是否勾选购物车中的商品
     isBuy(e,good) {
       let allBuy = 0
-      // console.log(e.target.checked);
       this.$set(good, 'isBuy', e.target.checked)
-      this.shopList.forEach(item => {
+      this.shopList.forEach((item, index) => {
         if(item.isBuy) {
           allBuy++
         }
@@ -253,6 +253,18 @@ export default {
       }else {
         this.$refs.all.checked = false
       }
+
+      this.shopList.forEach(item => {
+        this.update(item)
+      })
+
+      let price = 0
+      this.shopList.forEach(item => {
+          if(item.isBuy) {
+            price += item.buy*item.price
+          }
+        })
+      this.totalPrice = price
     },
     // 全部都买
     allBuy(e) {
@@ -260,9 +272,19 @@ export default {
         this.shopList[index].isBuy = e.target.checked
       })
       this.$refs.alone.forEach(item => {
-        item.checked = e.target.checked
+        this.$refs.alone.checked = e.target.checked
       })
-      console.log(this.$refs.alone);
+      this.shopList.forEach(item => {
+        this.update(item)
+      })
+
+      let price = 0
+      this.shopList.forEach(item => {
+          if(item.isBuy) {
+            price += item.buy*item.price
+          }
+        })
+      this.totalPrice = price
     }
   },
   created() {
@@ -304,7 +326,7 @@ export default {
   beforeUpdate() {
     // 注意，此时goodsList才有值，原因是JS的异步任务机制
     this.viewCar();
-  },
+  }
 };
 </script>
 
