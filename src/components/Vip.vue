@@ -16,7 +16,7 @@
     </div>
 
     <!-- 商品 -->
-    <div class="bg" v-for="good in goodsList" :key="good.id">
+    <div class="bg" v-for="good in shopList" :key="good.id">
       <div class="goods">
         <!-- 商品图片 -->
         <img :src="url + good.url" alt="" />
@@ -65,7 +65,7 @@
           <div class="right" @click="closeCar">关闭</div>
         </div>
         <div v-for="good in shopList" :key="good.id">
-          <div class="goods">
+          <div class="goods" v-if="haveGoods && good.buy">
             <input type="checkbox" @click="isBuy($event,good)" v-model="good.isBuy" ref="alone">
             <!-- 商品图片 -->
             <img :src="url + good.url" alt="" />
@@ -99,12 +99,11 @@ export default {
       url: "http://192.168.0.105:8080", // 基本请求地址
       topList: [],
       goodsList: [], // 商品
-      num: 0,
       isShow: false,
       haveGoods: true,
       shopList: [], // 购物车商品
       totalPrice: 0,  // 总价
-      allChecked: true
+      allChecked: false
     };
   },
   watch: {
@@ -115,9 +114,15 @@ export default {
         let price = 0
         let allBuy = 0
         newVal.forEach(item => {
-          if(item.isBuy != false) {
+          this.haveGoods = false
+          // 计算价格
+          if(item.isBuy) {
             price += item.buy*item.price
             allBuy++
+          }
+
+          if(item.buy) {
+            this.haveGoods = true
           }
         })
         this.totalPrice = price
@@ -135,9 +140,41 @@ export default {
         this.goodsList.forEach((good) => {
           this.$set(good, "buy", 0);
         });
-        // 根据本地存储更改商品是否加入购物车
+        this.shopList = this.goodsList
+        let carList = JSON.parse(localStorage.getItem("carList"))
+        this.shopList.forEach((item1, i) => {
+          carList.forEach(item2 => {
+            if(item1.id === item2.id) {
+              this.shopList[i].buy = item2.buy
+            }
+          })
+        })
       });
     },
+
+    // 向本地存储copy一份shopList
+    confirm() {
+      let endCar = []
+      this.shopList.forEach(item => {
+        endCar.push(item)
+      })
+      localStorage.setItem("endCar", JSON.stringify(endCar))
+    },
+
+    // 向本地存储想要购买的商品数量
+    store() {
+      let carList = []
+      this.shopList.forEach(item => {
+        let tmp = {}
+        if(item.buy) {
+          tmp.id = item.id
+          tmp.buy = item.buy
+          carList.push(tmp)
+        }
+      })
+      localStorage.setItem("carList", JSON.stringify(carList))
+    },
+
     // 更新浏览器存储的购物车中商品的信息
     update(good) {
       let carList = JSON.parse(localStorage.getItem("carList"));
@@ -158,78 +195,34 @@ export default {
     jia(good) {
       // 增加商品
       good.buy++;
-      // 更新本地存储
-      this.update(good);
     },
     jian(good) {
       // 减少商品
       good.buy--;
-      // 更新本地存储
-      this.update(good);
-
-      // 解决打开购物车页面，操作商品从1-》0时，goodsList数据更新不及时的问题
-      this.goodsList.forEach((item, index) => {
-        if(item.id === good.id) {
-          this.goodsList[index].buy = good.buy
-        }
-      })
-    },
-    // 用于一开始加载页面读取本地存储中的购物信息
-    viewCar() {
-      this.goodsList.forEach((good, index) => {
-        let carList = localStorage.getItem("carList");
-        if (carList) {
-          carList = JSON.parse(carList);
-        }
-        carList.forEach((item) => {
-          // 本地有对应商品的购物信息，则加载本地的购物数
-          if (good.id === item.id) {
-            this.goodsList[index].buy = item.buy;
-          }
-        });
-      });
     },
     toCar(good) {
       // 加入购物车
       good.buy = 1;
-      // 读取本地存储中的购物信息
-      let carList = localStorage.getItem("carList");
-      if (carList) {
-        // 有
-        carList = JSON.parse(carList);
-      } else {
-        // 无
-        carList = [];
-      }
-      let purchased = {};
-      purchased.id = good.id;
-      purchased.name = good.name;
-      purchased.buy = good.buy;
-      purchased.price = good.price;
-      purchased.url = good.url
-      purchased.isBuy = this.allChecked
-      // 加入商品
-      carList.push(purchased);
-      this.shopList = carList
-      // 添加到本地存储
-      localStorage.setItem("carList", JSON.stringify(carList));
-      console.log(this.shopList);
     },
 
     // 弹出和收回购物车,以及加载购物车中的信息
     showCar1() {
       this.isShow = !this.isShow;
       if (this.isShow) {
-        this.$refs.car.style.bottom = "347px";
+        this.$refs.car.style.bottom = "21.6875rem";
         this.$refs.mask.style.display = "block";
       } else {
-        this.$refs.car.style.bottom = "50px";
+        this.$refs.car.style.bottom = "3.125rem";
         this.$refs.mask.style.display = "none";
       }
 
-      // 渲染购物车中的商品
-      this.shopList = JSON.parse(localStorage.getItem("carList"));
-      if (!this.shopList.length) {
+      let lg =0
+      this.shopList.forEach(item => {
+        if(item.buy > 0) {
+          lg++
+        }
+      })
+      if (!lg) {
         this.haveGoods = false;
       } else {
         this.haveGoods = true;
@@ -238,7 +231,7 @@ export default {
 
     // 关闭购物车按钮
     closeCar() {
-      this.$refs.car.style.bottom = "50px";
+      this.$refs.car.style.bottom = "3.125rem";
       this.$refs.mask.style.display = "none";
       this.isShow = !this.isShow;
     },
@@ -250,6 +243,8 @@ export default {
       this.shopList.forEach((item, index) => {
         if(item.isBuy) {
           allBuy++
+        }else if(!item.buy) {
+          allBuy++
         }
       })
       if(allBuy === this.shopList.length) {
@@ -258,10 +253,8 @@ export default {
         this.$refs.all.checked = false
       }
 
-      this.shopList.forEach(item => {
-        this.update(item)
-      })
 
+      // 重新计算价格
       let price = 0
       this.shopList.forEach(item => {
           if(item.isBuy) {
@@ -278,10 +271,8 @@ export default {
       this.$refs.alone.forEach(item => {
         this.$refs.alone.checked = e.target.checked
       })
-      this.shopList.forEach(item => {
-        this.update(item)
-      })
 
+      // 重新计算价格
       let price = 0
       this.shopList.forEach(item => {
           if(item.isBuy) {
@@ -327,9 +318,10 @@ export default {
     // 请求商品列表
     this.query();
   },
-  beforeUpdate() {
-    // 注意，此时goodsList才有值，原因是JS的异步任务机制
-    this.viewCar();
+  updated() {
+    // 每次更新数据之后，都将本地的数据也更新一下
+    this.store()
+    this.confirm()
   }
 };
 </script>
@@ -345,9 +337,6 @@ html {
 a {
   text-decoration: none;
 }
-/* body {
-  background-color: blue;
-} */
 .top {
   ul {
     display: flex;
@@ -465,105 +454,105 @@ a {
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 667px;
+  height: 41.6875rem;
   background: rgba(0, 0, 0, 0.6);
 }
 
 // 底部购物车
 .bottom {
   position: fixed;
-  bottom: 45px;
+  bottom: 2.8125rem;
   width: 100%;
-  height: 50px;
+  height: 3.125rem;
   .payBtn {
     display: flex;
     position: relative;
-    width: 375px;
+    width: 23.4375rem;
     height: 100%;
     z-index: 2;
     background-color: #fff;
     img {
-      width: 50px;
-      height: 50px;
+      width: 3.125rem;
+      height: 3.125rem;
     }
     div {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      width: 325px;
-      height: 50px;
+      width: 20.3125rem;
+      height: 3.125rem;
       background-color: red;
       color: #fff;
       :last-child {
-        font-size: 14px;
+        font-size: .875rem;
       }
     }
   }
   .carInfo {
     position: relative;
-    bottom: 50px;
-    width: 375px;
-    height: 297px;
+    bottom: 3.125rem;
+    width: 23.4375rem;
+    height: 18.5625rem;
     background-color: #fff;
     z-index: 1;
     transition: all 0.3s;
     .noGoods {
-      padding-top: 20px;
-      font-size: 20px;
+      padding-top: 1.25rem;
+      font-size: 1.25rem;
     }
 
     .top {
       display: flex;
       justify-content: space-between;
-      height: 42px;
+      height: 2.625rem;
       .left {
         position: relative;
-        width: 60px;
-        height: 42px;
-        line-height: 42px;
+        width: 3.75rem;
+        height: 2.625rem;
+        line-height: 2.625rem;
         font-weight: 700;
         input {
           display: inline-block;
           position: absolute;
-          left: 8px;
-          top: 12px;
-          width: 16px;
-          height: 16px;
+          left: .5rem;
+          top: .75rem;
+          width: 1rem;
+          height: 1rem;
         }
         span {
           position: absolute;
-          left: 28px;
+          left: 1.75rem;
         }
       }
 
       .mid {
-        padding-top: 3px;
+        padding-top: .1875rem;
       }
       .right {
-        margin-left: 8px;
-        padding: 10px 10px 0 0 ;
+        margin-left: .5rem;
+        padding: .625rem .625rem 0 0 ;
       }
     }
 
     .goods {
       display: flex;
       position: relative;
-      margin-bottom: 20px;
+      margin-bottom: 1.25rem;
       background-color: #fff;
 
       input {
         position: absolute;
         display: inline-block;
-        top: 22px;
-        left: 8px;
-        width: 14px;
-        height: 14px;
+        top: 1.375rem;
+        left: .5rem;
+        width: .875rem;
+        height: .875rem;
       }
 
       img {
-        margin-left: 30px;
-        width: 60px;
-        height: 60px;
+        margin-left: 1.875rem;
+        width: 3.75rem;
+        height: 3.75rem;
       }
       .info {
         position: relative;

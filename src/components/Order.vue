@@ -24,7 +24,13 @@
             <div class="name">姓名:王清华</div>
             <div class="address">地址:河南省焦作市山阳区河南理工大学新校区</div>
         </div>
-        <div @click="toOrder">立即下单</div>
+        <div @click="toOrder" class="paybtn">
+            <div class="payBtn1">
+                <div>
+                    <span>确认下单</span>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -58,8 +64,8 @@ export default {
                     "siteName":"阿五遍历店",
                     "siteMobile":"152552322",
                     "siteAddress":"郑州市高新区",
-                    "reciveUser":"莉莉",
-                    "reciveMobile":"1365555"
+                    "reciveUser":"王清华",
+                    "reciveMobile":"17630926552"
                 };
                 order.payable=this.total;
                 order.pay=this.total;
@@ -85,8 +91,8 @@ export default {
         }
     },
     created() {
-        this.goodList = JSON.parse(localStorage.getItem("carList"))
-    },
+        this.goodList = JSON.parse(localStorage.getItem("endCar"))
+    }
 };
 </script>
 
@@ -174,5 +180,20 @@ export default {
 }
 .buyInfo {
     text-align: left;
+}
+
+.payBtn1 {
+    position: fixed;
+    bottom: 2.8125rem;
+    width: 23.4375rem;
+    z-index: 2;
+    background-color: #fff;
+    div {
+        width: 23.4375rem;
+        height: 3.125rem;
+        background-color: red;
+        color: #fff;
+        line-height: 3.125rem;
+    }
 }
 </style>
